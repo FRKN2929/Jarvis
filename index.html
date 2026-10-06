@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JARVIS">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>JARVIS</title>
+<style>
+@font-face { font-family: "Saira"; src: url("Saira.ttf") format("truetype"); font-weight: 100 900; font-stretch: 50% 125%; }
+@font-face { font-family: "JBMono"; src: url("JetBrainsMono.ttf") format("truetype"); font-weight: 100 800; }
+:root { --void:#000; --ember:#ff6a1a; --flare:#ffb066; --ash:#8c8079; --bone:#f3ece4; --up:#3ddc84; --down:#ff3b30; --line:rgba(255,106,26,.22); --panel:rgba(14,8,4,.86);
+  --display:"Saira","Helvetica Neue",Arial,sans-serif; --mono:"JBMono",ui-monospace,Menlo,monospace; --safe-b: env(safe-area-inset-bottom, 0px); --safe-t: env(safe-area-inset-top, 0px); }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--void); color: var(--bone); font: 15px/1.45 var(--display); overscroll-behavior: none; }
+body { display: flex; flex-direction: column; min-height: 100dvh; padding-top: var(--safe-t); }
+button, input { font: inherit; color: inherit; }
+header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 800; letter-spacing: .3em; font-size: 13px; }
+.brand b { color: var(--ember); font-weight: 600; letter-spacing: .2em; margin-left: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--down); box-shadow: 0 0 8px var(--down); margin-left: auto; }
+.dot.on { background: var(--up); box-shadow: 0 0 8px var(--up); }
+#conn { font: 500 10px var(--mono); color: var(--ash); letter-spacing: .08em; }
+main { flex: 1; overflow-y: auto; padding: 0 16px calc(150px + var(--safe-b)); -webkit-overflow-scrolling: touch; }
+#coreWrap { position: relative; height: 210px; display: grid; place-items: center; }
+#core { width: 210px; height: 210px; }
+#state { position: absolute; bottom: 4px; font: 600 10px var(--mono); letter-spacing: .24em; color: var(--ember); text-transform: uppercase; }
+#you { font: 500 12px var(--mono); color: var(--ash); min-height: 18px; text-align: center; }
+#reply { font-size: 18px; font-weight: 500; text-align: center; min-height: 26px; margin: 4px 0 14px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; padding: 8px 12px; border: 1px solid var(--line); background: var(--panel); font: 600 12px var(--display); letter-spacing: .04em; border-radius: 0; }
+.chip:active { border-color: var(--ember); }
+.card { margin-top: 14px; border: 1px solid var(--line); background: var(--panel); padding: 14px; position: relative; }
+.card h3 { margin: 0 0 10px; font: 700 10.5px var(--display); letter-spacing: .26em; color: var(--ember); display: flex; justify-content: space-between; }
+.card h3 span { color: var(--ash); font: 500 10px var(--mono); letter-spacing: .06em; }
+.big { font: 800 40px/1 var(--display); font-stretch: 75%; }
+.muted { color: var(--ash); font-size: 12px; }
+.row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.up { color: var(--up); } .down { color: var(--down); }
+.news { display: grid; grid-template-columns: 84px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); text-decoration: none; color: inherit; }
+.news .th { height: 50px; background: #140a05 center/cover no-repeat; }
+.news b { font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+canvas.chart { width: 100%; height: 150px; display: block; margin-top: 8px; }
+.sig { display: flex; gap: 12px; margin-top: 10px; padding: 8px 10px; border: 1px solid var(--ash); font: 500 10px var(--mono); color: var(--ash); flex-wrap: wrap; }
+.sig.up { border-color: var(--up); } .sig.down { border-color: var(--down); }
+.sig b { display: block; color: var(--bone); font-size: 13px; }
+.sig > b { font: 800 16px var(--display); color: var(--bone); } .sig.up > b { color: var(--up); } .sig.down > b { color: var(--down); }
+.list a, .list div.item { display: block; padding: 9px 0; border-bottom: 1px dashed var(--line); color: inherit; text-decoration: none; }
+.list small { display: block; color: var(--ash); font: 500 10.5px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn { display: inline-block; margin-top: 10px; padding: 10px 14px; border: 1px solid var(--ember); background: transparent; font-weight: 600; text-decoration: none; color: var(--bone); }
+.btn.hot { background: var(--ember); color: #000; }
+video { width: 100%; max-height: 60vh; background: #000; margin-top: 8px; }
+table { width: 100%; border-collapse: collapse; font: 500 11px var(--mono); }
+th { text-align: left; color: var(--ember); border-bottom: 1px solid var(--line); padding: 4px; } td { border-bottom: 1px dashed var(--line); padding: 4px; }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; text-align: center; font: 500 10px var(--mono); color: var(--ash); }
+.days b { display: block; color: var(--bone); font-size: 13px; }
+footer { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + var(--safe-b)); background: linear-gradient(0deg, #000 70%, rgba(0,0,0,0)); }
+.inbar { display: flex; gap: 10px; align-items: center; }
+#text { flex: 1; min-width: 0; padding: 14px 14px; background: #0c0603; border: 1px solid var(--line); outline: none; font-size: 16px; }
+#text:focus { border-color: var(--ember); }
+#mic { width: 64px; height: 64px; flex: none; border-radius: 50%; border: 2px solid var(--ember); background: radial-gradient(circle, rgba(255,106,26,.35), rgba(0,0,0,.2) 70%); display: grid; place-items: center; }
+#mic svg { fill: var(--ember); }
+#mic.live { background: var(--ember); animation: pulse 1s infinite; } #mic.live svg { fill: #000; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 12px rgba(255,106,26,.15); } }
+.opts { display: flex; gap: 14px; margin-top: 8px; font: 500 11px var(--mono); color: var(--ash); }
+.opts label { display: flex; align-items: center; gap: 6px; }
+#pair { position: fixed; inset: 0; z-index: 20; background: #000; display: flex; flex-direction: column; justify-content: center; padding: 28px; gap: 16px; }
+#pair[hidden], #confirm[hidden] { display: none; }
+#pair h1 { margin: 0; font: 800 44px/1 var(--display); font-stretch: 75%; letter-spacing: .04em; }
+#pair p { color: var(--ash); margin: 0; }
+#code { font: 700 34px var(--mono); letter-spacing: .4em; text-align: center; padding: 14px; background: #0c0603; border: 1px solid var(--ember); outline: none; }
+#pairErr { color: var(--down); min-height: 20px; font-size: 13px; }
+#confirm { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.75); display: flex; align-items: flex-end; }
+#confirm .box { width: 100%; background: #0b0502; border-top: 2px solid var(--ember); padding: 20px 18px calc(20px + var(--safe-b)); }
+#confirm .k { font: 700 11px var(--mono); letter-spacing: .2em; color: var(--down); }
+#confirm .t { font: 700 22px/1.2 var(--display); margin: 8px 0; }
+#confirm pre { white-space: pre-wrap; font: 500 12px var(--mono); color: var(--ash); max-height: 30vh; overflow: auto; }
+#confirm .acts { display: flex; gap: 10px; } #confirm .acts .btn { flex: 1; text-align: center; padding: 14px; }
+
+.chipbar { display: flex; gap: 8px; align-items: center; }
+.bchip { font: 600 10px var(--mono); letter-spacing: .06em; padding: 4px 8px; border: 1px solid var(--line); color: var(--ash); }
+.bchip.on { color: var(--bone); border-color: var(--ember); }
+#gear { margin-left: 6px; width: 34px; height: 34px; border: 1px solid var(--line); background: transparent; display: grid; place-items: center; }
+#gear svg { fill: var(--ember); }
+.sheet { position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.7); display: flex; align-items: flex-end; }
+.sheet[hidden] { display: none; }
+.sheet .box { width: 100%; max-height: 88vh; overflow-y: auto; background: #0b0502; border-top: 2px solid var(--ember); padding: 18px 16px calc(18px + var(--safe-b)); }
+.sheet h2 { margin: 0 0 4px; font: 800 26px var(--display); font-stretch: 80%; }
+.sheet h4 { margin: 18px 0 8px; font: 700 10.5px var(--display); letter-spacing: .26em; color: var(--ember); }
+.opt { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.opt input[type=radio] { accent-color: #ff6a1a; width: 18px; height: 18px; }
+.prog { height: 6px; background: rgba(255,255,255,.08); margin-top: 10px; } .prog i { display: block; height: 100%; width: 0; background: var(--ember); transition: width .3s; }
+#progTxt { font: 500 11px var(--mono); color: var(--ash); margin-top: 6px; min-height: 16px; }
+.onb { margin-top: 10px; border: 1px solid var(--ember); padding: 16px; background: linear-gradient(180deg, rgba(255,106,26,.08), transparent); }
+.onb b { font-size: 17px; }
+.seg { display: flex; border: 1px solid var(--line); } .seg button { flex: 1; padding: 10px; background: transparent; border: 0; border-right: 1px solid var(--line); font-weight: 600; } .seg button:last-child { border-right: 0; } .seg button.on { background: var(--ember); color: #000; }
+.acts2 { display: flex; gap: 8px; flex-wrap: wrap; } .acts2 .btn { flex: 1; text-align: center; min-width: 40%; }
+iframe.site { width: 100%; height: 420px; border: 1px solid var(--line); background: #fff; margin-top: 8px; }
+pre.live { white-space: pre-wrap; font: 500 11px/1.45 var(--mono); color: var(--ash); max-height: 240px; overflow: hidden; margin: 8px 0 0; }
+.slides { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+.slides div { aspect-ratio: 16/9; background: #0b0b0c; border: 1px solid var(--line); padding: 8px; font-size: 10px; overflow: hidden; }
+.slides div b { display: block; font-size: 11px; color: var(--bone); margin-bottom: 4px; border-bottom: 2px solid var(--ember); padding-bottom: 3px; }
+#pairCode { width: 100%; font: 700 26px var(--mono); letter-spacing: .4em; text-align: center; padding: 10px; background: #0c0603; border: 1px solid var(--ember); outline: none; }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">JARVIS</span>
+  <div class="chipbar" style="margin-left:auto">
+    <span class="bchip" id="brainChip">GEHIRN AUS</span>
+    <span class="bchip" id="macChip">MAC —</span>
+  </div>
+  <button id="gear" aria-label="Einstellungen"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1l-.4-2.7h-4l-.4 2.7a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L4.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1l.4 2.7h4l.4-2.7a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5L19.4 13zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></svg></button>
+</header>
+<main>
+  <div id="coreWrap"><canvas id="core" width="420" height="420"></canvas><div id="state">Bereit</div></div>
+  <div id="you"></div>
+  <div id="reply"></div>
+  <div id="onboard"></div>
+  <div class="chips">
+    <button class="chip" data-cmd="Wie wird das Wetter?">Wetter</button>
+    <button class="chip" data-cmd="Was passiert in der Welt?">Nachrichten</button>
+    <button class="chip" data-cmd="Zeig mir Krypto">Krypto</button>
+    <button class="chip" data-cmd="Analyse Bitcoin">Bitcoin-Signal</button>
+    <button class="chip" data-cmd="Wie steht der DAX?">DAX</button>
+    <button class="chip" data-fill="Erstelle eine Präsentation über ">Präsentation</button>
+    <button class="chip" data-fill="Mach mir ein TikTok Video über ">TikTok-Video</button>
+    <button class="chip" data-fill="Bau mir eine Website für ">Website</button>
+    <button class="chip" data-fill="Schreib ein PDF über ">PDF</button>
+    <button class="chip" data-fill="Erstelle eine Excel Tabelle mit ">Excel</button>
+  </div>
+  <div id="view"></div>
+</main>
+<footer>
+  <div class="inbar">
+    <input id="text" placeholder="Frag JARVIS …" enterkeyhint="send" autocomplete="off">
+    <button id="mic" aria-label="Sprechen"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"/></svg></button>
+  </div>
+</footer>
+
+<div class="sheet" id="settings" hidden><div class="box">
+  <h2>Einstellungen</h2>
+  <h4>GEHIRN AUF DEM IPHONE</h4>
+  <div id="models"></div>
+  <button class="btn hot" id="loadBrain" style="width:100%">Gehirn laden</button>
+  <div class="prog"><i id="progBar"></i></div><div id="progTxt"></div>
+  <div class="muted" id="engineInfo"></div>
+  <h4>WER DENKT?</h4>
+  <div class="seg" id="mode"><button data-m="auto">Automatisch</button><button data-m="phone">Nur iPhone</button><button data-m="mac">Nur Mac</button></div>
+  <div class="muted" style="margin-top:6px">JARVIS braucht keinen Mac: Gespräche, Präsentationen, PDFs, Word, Excel, Websites, TikTok-Videos, Wetter, Nachrichten, Krypto und Aktien laufen komplett auf dem iPhone. „Nur Mac“ schickt alles an einen gekoppelten Mac.</div>
+  <div id="macSection">
+  <h4>MAC VERBINDEN (OPTIONAL)</h4>
+  <div class="muted" id="macInfo">Am Mac sagen: „Jarvis, verbinde mein Handy“ und den Code eingeben.</div>
+  <input id="pairCode" inputmode="numeric" maxlength="6" placeholder="000000" style="margin-top:8px">
+  <button class="btn" id="pairBtn" style="width:100%">Mit Mac koppeln</button>
+  <div id="pairErr" class="muted"></div>
+  <label class="opt"><input type="checkbox" id="macMute"> Mac-Mikrofon stumm</label>
+  </div>
+  <h4>STIMME</h4>
+  <label class="opt"><input type="checkbox" id="speak" checked> Antworten vorlesen</label>
+  <button class="btn" id="closeSettings" style="width:100%;margin-top:16px">Fertig</button>
+</div></div>
+
+<div id="confirm" hidden><div class="box">
+  <div class="k" id="cfK">BESTÄTIGUNG</div><div class="t" id="cfT"></div><pre id="cfD"></pre>
+  <div class="acts"><button class="btn" id="cfNo">Abbrechen</button><button class="btn hot" id="cfYes">Ausführen</button></div>
+</div></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
